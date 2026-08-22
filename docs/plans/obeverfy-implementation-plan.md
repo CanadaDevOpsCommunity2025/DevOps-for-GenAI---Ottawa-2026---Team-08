@@ -1668,6 +1668,14 @@ git commit -m "Add realtime subscriptions for live trace and span updates"
 
 Run one more full claim through the demo (`.venv/bin/python -m demo_app.scenarios.run_claim`) with the dashboard open to confirm the live end-to-end flow, then open a PR from `obeverfy` into `main`.
 
-## Not yet designed: file upload
+## File-based batch claim processing (built on branch `obeverfy-agent-batch`)
 
-There's a planned feature to upload one or more claim files through the dashboard and have each one run through `handle_claim()` automatically, instead of only the hardcoded `run_claim.py` scenario. That hasn't been through a design pass yet (file format, single vs. batch, how the browser triggers a Python-side run) and isn't a task above — design and plan it separately before implementing.
+Implemented: `demo_app/claim_files.py` (`load_claim_file`, `build_message`, `find_claim_files`) and `demo_app/scenarios/process_claims.py`. A claim is a small JSON file (`claim_id`, `category`, `amount`, optional `description`/`message`); point the runner at one or more files or a directory:
+
+```bash
+.venv/bin/python -m demo_app.scenarios.process_claims demo_app/sample_claims
+```
+
+Three sample claims live in `demo_app/sample_claims/` (two escalate, one auto-approves) for demoing the mix live. Verified end to end against real Supabase/OpenAI.
+
+**Still open, not built:** a real browser upload widget that triggers a live Python run from the dashboard. That needs either a Supabase Storage bucket + trigger, or a small backend endpoint — more infrastructure than this hackathon needs. The CLI batch runner above gives the same demo payoff (feed it files, watch the dashboard update live via Realtime) without it. If a teammate wants the literal upload button, design that as its own task before building it.
