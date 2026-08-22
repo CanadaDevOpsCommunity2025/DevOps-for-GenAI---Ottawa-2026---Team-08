@@ -1,8 +1,11 @@
 // Trace list + waterfall + span detail, wired together across Tasks 8-10 of
 // docs/plans/obeverfy-implementation-plan.md.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { SpanDetail } from './components/SpanDetail';
 import { TraceList } from './components/TraceList';
+import { TraceWaterfall } from './components/TraceWaterfall';
+import { useTraceSpans } from './hooks/useTraceSpans';
 import { supabaseConfiguration } from './supabaseClient';
 
 function ConfigurationError({ issues }) {
@@ -30,9 +33,18 @@ function ConfigurationError({ issues }) {
 
 export function App() {
   const [selection, setSelection] = useState({ traceId: null, spanId: null });
+  const { spans, isLoading, errorMessage, reload } = useTraceSpans(selection.traceId);
+  const selectedSpan = useMemo(
+    () => spans.find((span) => span.span_id === selection.spanId) ?? null,
+    [selection.spanId, spans],
+  );
 
   function selectTrace(traceId) {
     setSelection({ traceId, spanId: null });
+  }
+
+  function selectSpan(spanId) {
+    setSelection((current) => ({ ...current, spanId }));
   }
 
   if (!supabaseConfiguration.isValid) {
@@ -63,16 +75,45 @@ export function App() {
         </nav>
       </aside>
 
-      <main className="trace-workspace">
+      <main
+        className={`trace-workspace ${selection.traceId ? 'trace-workspace-active' : ''}`}
+      >
         {selection.traceId ? (
-          <section className="workspace-state" aria-labelledby="selected-trace-title">
-            <p className="workspace-context">Trace explorer</p>
-            <h2 id="selected-trace-title">Trace selected</h2>
-            <p>The span timeline and execution details will load in this workspace.</p>
-            <dl className="selected-trace-reference">
-              <dt>Trace ID</dt>
-              <dd><code>{selection.traceId}</code></dd>
-            </dl>
+          <section className="trace-explorer" aria-labelledby="selected-trace-title">
+            <header className="trace-explorer-header">
+              <div>
+                <h2 id="selected-trace-title">Execution trace</h2>
+                <p><code>{selection.traceId}</code></p>
+              </div>
+              <p className="trace-span-count" aria-live="polite">
+                {isLoading
+                  ? 'Loading spans…'
+                  : `${spans.length} ${spans.length === 1 ? 'span' : 'spans'}`}
+              </p>
+            </header>
+
+            <div className="trace-explorer-body">
+              <section className="trace-tree-panel" aria-labelledby="trace-tree-title">
+                <header className="panel-heading">
+                  <h2 id="trace-tree-title">Span hierarchy</h2>
+                  <p>Operations are ordered by start time.</p>
+                </header>
+                <div className="trace-tree-content">
+                  <TraceWaterfall
+                    spans={spans}
+                    isLoading={isLoading}
+                    errorMessage={errorMessage}
+                    selectedSpanId={selection.spanId}
+                    onSelectSpan={selectSpan}
+                    onRetry={reload}
+                  />
+                </div>
+              </section>
+
+              <section className="span-inspector-panel" aria-label="Selected span inspector">
+                <SpanDetail span={selectedSpan} />
+              </section>
+            </div>
           </section>
         ) : (
           <section className="workspace-state" aria-labelledby="empty-workspace-title">

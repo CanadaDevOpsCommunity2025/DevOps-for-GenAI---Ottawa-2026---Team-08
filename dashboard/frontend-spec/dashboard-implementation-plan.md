@@ -15,12 +15,11 @@ without polling.
 - The Vite, React, and Supabase dependencies are installed.
 - `package.json`, `vite.config.js`, `index.html`, `main.jsx`, and
   `supabaseClient.js` are scaffolded.
-- `App.jsx`, `supabaseClient.js`, and `TraceList.jsx` implement the Phase 1–2
-  configuration boundary, application shell, and recent trace list.
-  `TraceWaterfall.jsx` and `SpanDetail.jsx` remain placeholders.
-- `index.css` contains the dashboard tokens, configuration states, Phase 2
-  shell, trace-list states, and responsive layout. Trace visualization and
-  inspector styles remain part of later phases.
+- The Phase 1–3 configuration boundary, application shell, recent trace list,
+  trace hierarchy, and span inspector are implemented. Realtime updates remain
+  part of Phase 4.
+- `index.css` contains the dashboard tokens, configuration states, responsive
+  shell, trace-list states, trace hierarchy, and inspector layout.
 - `dashboard/package-lock.json` is currently untracked and should be committed
   with the implementation.
 - The Supabase SQL schema exists locally, including RLS policies and Realtime
@@ -157,6 +156,8 @@ Acceptance criteria:
 
 ### Phase 3: Trace Tree and Span Inspector
 
+Status: Complete
+
 Files:
 
 - `src/components/TraceWaterfall.jsx`
@@ -168,22 +169,22 @@ Files:
 
 Tasks:
 
-- [ ] Fetch all spans for the selected `trace_id`.
-- [ ] Convert the flat span collection into a tree using `parent_span_id`.
-- [ ] Treat spans with missing parents as roots so partial live data remains
+- [x] Fetch all spans for the selected `trace_id`.
+- [x] Convert the flat span collection into a tree using `parent_span_id`.
+- [x] Treat spans with missing parents as roots so partial live data remains
       visible.
-- [ ] Sort roots and children by `started_at`.
-- [ ] Render each span with nesting depth, kind, name, status, duration, and
+- [x] Sort roots and children by `started_at`.
+- [x] Render each span with nesting depth, kind, name, status, duration, and
       error indication.
-- [ ] Use keyboard-selectable semantic controls for span rows.
-- [ ] Store the selected `span_id`, not a copied span object.
-- [ ] Derive the selected span from the latest span collection so its detail
+- [x] Use keyboard-selectable semantic controls for span rows.
+- [x] Store the selected `span_id`, not a copied span object.
+- [x] Derive the selected span from the latest span collection so its detail
       panel stays synchronized with Realtime updates.
-- [ ] Display status, kind, identifiers, timestamps, duration, and error text
+- [x] Display status, kind, identifiers, timestamps, duration, and error text
       in the inspector.
-- [ ] Display formatted input and output JSON with safe horizontal overflow.
-- [ ] Give `null` input/output values a clear empty presentation.
-- [ ] Handle long names, large JSON values, deep nesting, and failed spans.
+- [x] Display formatted input and output JSON with safe horizontal overflow.
+- [x] Give `null` input/output values a clear empty presentation.
+- [x] Handle long names, large JSON values, deep nesting, and failed spans.
 
 Acceptance criteria:
 
@@ -267,6 +268,8 @@ dashboard/src/
 ├── main.jsx
 ├── supabaseClient.js
 ├── index.css
+├── hooks/
+│   └── useTraceSpans.js
 ├── components/
 │   ├── TraceList.jsx
 │   ├── TraceWaterfall.jsx
