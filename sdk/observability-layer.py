@@ -44,21 +44,3 @@ def receive_json() -> Any:
 
     with urlopen(request) as response:
         return json.load(response)
-
-
-def call_openai(prompt: str, model: str = "gpt-5.6") -> Any:
-    """Send a prompt to the OpenAI Responses API and return its JSON response."""
-    api_key = _required_env("OPENAI_API_KEY")
-
-    request = Request(
-        OPENAI_RESPONSES_URL,
-        data=json.dumps({"model": model, "input": prompt}).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        method="POST",
-    )
-
-    with urlopen(request) as response:
-        return json.load(response)
