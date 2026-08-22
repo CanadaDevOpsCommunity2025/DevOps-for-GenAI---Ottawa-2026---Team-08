@@ -136,6 +136,15 @@ def test_find_claim_files_rejects_non_json_file(tmp_path):
         find_claim_files([str(path)])
 
 
+def test_load_claim_file_rejects_boolean_amount(tmp_path):
+    """Reject claim files with boolean amount (true/false are not valid numbers)."""
+    path = tmp_path / "claim.json"
+    path.write_text(json.dumps({"claim_id": "C-1", "category": "auto", "amount": True}))
+
+    with pytest.raises(InvalidClaimFileError, match="'amount' must be a number"):
+        load_claim_file(path)
+
+
 def test_build_message_rejects_non_string_message(tmp_path):
     """Reject claim files with non-string message."""
     claim = {"category": "auto", "amount": 5000, "message": 12345}

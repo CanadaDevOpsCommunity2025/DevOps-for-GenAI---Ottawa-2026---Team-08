@@ -69,6 +69,9 @@ def main(argv: list[str]) -> None:
     summary += "."
     print(summary)
 
+    if failed_count > 0:
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
