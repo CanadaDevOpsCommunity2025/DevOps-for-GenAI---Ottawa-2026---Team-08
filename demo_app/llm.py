@@ -6,7 +6,7 @@ import os
 from typing import Any, Optional
 from urllib.request import Request, urlopen
 
-from .tracing_stub import traced
+from obeverfy.tracing import traced
 
 
 def _parse_tool_call(response_json: dict) -> Optional[dict]:

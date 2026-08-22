@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from .llm import call_llm, extract_text
 from .tools import TOOL_DEFINITIONS, TOOL_IMPLEMENTATIONS, retrieve_claim_history, retrieve_policy
-from .tracing_stub import traced
+from obeverfy.tracing import traced
 
 
 @traced(kind="llm")
