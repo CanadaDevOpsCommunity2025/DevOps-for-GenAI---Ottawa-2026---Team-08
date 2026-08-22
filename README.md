@@ -77,7 +77,7 @@ TODO: Document required environment variables and configuration. Do **not** incl
 
 ## Repository
 
-**GitHub Repository:** TODO: Add repository URL
+**GitHub Repository:** https://github.com/CanadaDevOpsCommunity2025/DevOps-for-GenAI---Ottawa-2026---Team-08
 
 ### Repository Structure
 
@@ -176,16 +176,16 @@ Async-function support, configurable sensitive-data redaction, authentication/ac
 | --------------- | ------------------- |
 | Armando Malpica | Project Lead        |
 | Caelen Roberge  | Backend Expert      |
-| Yassine Amraoi  | Thought Specialist  |
+| Yassine Amraoi  | Tracability Expert  |
 | Joseph Coakeley | Thought Leader      |
 
 ---
 
 ## Submission Checklist
 
-* [ ] Project name and selected theme
-* [ ] Elevator pitch
-* [ ] Problem statement and target users
+* [Y] Project name and selected theme
+* [Y] Elevator pitch
+* [Y] Problem statement and target users
 * [ ] Architecture diagram
 * [ ] Working demo / URL or reproducible run
 * [ ] GitHub repository
@@ -201,5 +201,5 @@ Async-function support, configurable sensitive-data redaction, authentication/ac
 * [ ] Secrets scan / repository hygiene evidence
 * [ ] Runbook / setup instructions
 * [ ] Demo video or live presentation
-* [ ] Known limitations and future roadmap
+* [Y] Known limitations and future roadmap
 * [Y] Team member list
