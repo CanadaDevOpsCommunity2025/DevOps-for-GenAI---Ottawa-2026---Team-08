@@ -1,11 +1,24 @@
 import json
 import os
+from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
+from dotenv import load_dotenv
 
-BASE_URL = "http://localhost:3000"
-OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
+
+load_dotenv(Path(__file__).with_name(".env"))
+
+
+def _required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise ValueError(f"{name} environment variable is not set")
+    return value
+
+
+BASE_URL = _required_env("BASE_URL")
+OPENAI_RESPONSES_URL = _required_env("OPENAI_RESPONSES_URL")
 
 
 def send_json(data: Any) -> Any:
@@ -35,9 +48,7 @@ def receive_json() -> Any:
 
 def call_openai(prompt: str, model: str = "gpt-5.6") -> Any:
     """Send a prompt to the OpenAI Responses API and return its JSON response."""
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    api_key = _required_env("OPENAI_API_KEY")
 
     request = Request(
         OPENAI_RESPONSES_URL,
