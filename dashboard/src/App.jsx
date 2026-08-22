@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { SpanDetail } from './components/SpanDetail';
+import { RealtimeIndicator } from './components/RealtimeIndicator';
 import { TraceList } from './components/TraceList';
 import { TraceWaterfall } from './components/TraceWaterfall';
 import { useTraceSpans } from './hooks/useTraceSpans';
@@ -33,7 +34,9 @@ function ConfigurationError({ issues }) {
 
 export function App() {
   const [selection, setSelection] = useState({ traceId: null, spanId: null });
-  const { spans, isLoading, errorMessage, reload } = useTraceSpans(selection.traceId);
+  const { spans, isLoading, errorMessage, connectionStatus, reload } = useTraceSpans(
+    selection.traceId,
+  );
   const selectedSpan = useMemo(
     () => spans.find((span) => span.span_id === selection.spanId) ?? null,
     [selection.spanId, spans],
@@ -85,11 +88,14 @@ export function App() {
                 <h2 id="selected-trace-title">Execution trace</h2>
                 <p><code>{selection.traceId}</code></p>
               </div>
-              <p className="trace-span-count" aria-live="polite">
-                {isLoading
-                  ? 'Loading spans…'
-                  : `${spans.length} ${spans.length === 1 ? 'span' : 'spans'}`}
-              </p>
+              <div className="trace-explorer-status">
+                <RealtimeIndicator status={connectionStatus} />
+                <p className="trace-span-count" aria-live="polite">
+                  {isLoading
+                    ? 'Loading spans…'
+                    : `${spans.length} ${spans.length === 1 ? 'span' : 'spans'}`}
+                </p>
+              </div>
             </header>
 
             <div className="trace-explorer-body">

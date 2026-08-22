@@ -15,9 +15,8 @@ without polling.
 - The Vite, React, and Supabase dependencies are installed.
 - `package.json`, `vite.config.js`, `index.html`, `main.jsx`, and
   `supabaseClient.js` are scaffolded.
-- The Phase 1–3 configuration boundary, application shell, recent trace list,
-  trace hierarchy, and span inspector are implemented. Realtime updates remain
-  part of Phase 4.
+- The Phase 1–4 configuration boundary, application shell, recent trace list,
+  trace hierarchy, span inspector, and Realtime reconciliation are implemented.
 - `index.css` contains the dashboard tokens, configuration states, responsive
   shell, trace-list states, trace hierarchy, and inspector layout.
 - `dashboard/package-lock.json` is currently untracked and should be committed
@@ -200,27 +199,30 @@ for the initial functional delivery.
 
 ### Phase 4: Realtime Reconciliation
 
+Status: Complete
+
 Files:
 
 - `src/components/TraceList.jsx`
-- `src/components/TraceWaterfall.jsx`
+- `src/components/RealtimeIndicator.jsx`
+- `src/hooks/useTraceSpans.js`
 - `src/lib/spans.js`
 
 Tasks:
 
-- [ ] Subscribe to root span inserts and updates for the recent trace list.
-- [ ] Subscribe to changes filtered by the active `trace_id` for the trace
+- [x] Subscribe to root span inserts and updates for the recent trace list.
+- [x] Subscribe to changes filtered by the active `trace_id` for the trace
       tree.
-- [ ] Reconcile changes by `span_id` through an upsert helper rather than
+- [x] Reconcile changes by `span_id` through an upsert helper rather than
       blindly appending events.
-- [ ] Handle INSERT, UPDATE, and DELETE event payloads safely.
-- [ ] Sort spans again after reconciliation.
-- [ ] Avoid losing an event between initial loading and subscription setup.
-- [ ] Remove old channels whenever the selected trace changes.
-- [ ] Ensure subscriptions are safe under React Strict Mode's development
+- [x] Handle INSERT, UPDATE, and DELETE event payloads safely.
+- [x] Sort spans again after reconciliation.
+- [x] Avoid losing an event between initial loading and subscription setup.
+- [x] Remove old channels whenever the selected trace changes.
+- [x] Ensure subscriptions are safe under React Strict Mode's development
       remount behavior.
-- [ ] Ignore late events belonging to a previously selected trace.
-- [ ] Surface a restrained live, reconnecting, or offline indicator.
+- [x] Ignore late events belonging to a previously selected trace.
+- [x] Surface a restrained live, reconnecting, or offline indicator.
 
 Acceptance criteria:
 
@@ -229,6 +231,11 @@ Acceptance criteria:
 - Running spans become successful or failed without a page refresh.
 - Duplicate events do not create duplicate rows.
 - Switching traces does not leak events or subscriptions from the prior trace.
+
+Implementation verification covers deterministic INSERT, UPDATE, DELETE,
+deduplication, child-event, ordering, and cleanup behavior. The live browser
+acceptance flow remains part of the full end-to-end verification below because
+it requires a running trace producer and a browser WebSocket connection.
 
 ### Phase 5: UI Hardening and Polish
 
