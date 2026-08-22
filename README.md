@@ -8,15 +8,15 @@
 
 ### Elevator Pitch
 
-TODO: Add a concise elevator pitch describing the project, its value, and what differentiates it.
+Obeverfy is a lightweight observability SDK for Python-based AI agents that makes their execution visible in real time. Developers add a simple @traced decorator to agent functions, and Obeverfy automatically captures nested execution spans, inputs, outputs, status, errors, and timing. A live dashboard then visualizes the resulting trace, helping developers understand how multi-step agents behave and where failures occur.
 
 ### Problem Statement
 
-TODO: Describe the problem the project addresses and why it matters.
+AI agents can perform multiple LLM calls, tool calls, and decision-making steps during a single task, making it difficult for developers to understand what happened when an agent behaves unexpectedly. Traditional application logs may show individual events but do not necessarily preserve the parent-child relationships, inputs, outputs, timing, and status of each step in an agent workflow. Obeverfy addresses this by capturing structured traces of agent execution and presenting them as a live hierarchical view.
 
 ### Target Users
 
-TODO: Identify the primary users or organizations that would benefit from the project.
+Developers and Teams building function-based Python AI agents who need visibility into agent execution for debugging, testing, and monitoring.
 
 ---
 
@@ -32,7 +32,12 @@ TODO: Add architecture diagram.
 
 ### Technology Stack
 
-TODO: Document the major technologies, frameworks, services, infrastructure, and development tools used by the project.
+Backend / SDK: Python 3.12, supabase-py, python-dotenv
+Testing: pytest
+Database / Infrastructure: Supabase Postgres, Row Level Security, Supabase Realtime
+Frontend: React 18, Vite, @supabase/supabase-js, CSS
+AI: OpenAI Responses API
+Observability SDK: custom Obeverfy Python SDK using decorators and contextvars
 
 ### AI Tool Inventory
 
@@ -157,11 +162,11 @@ TODO: Describe how dependencies are tracked and provide an SBOM or dependency in
 
 ## Known Limitations
 
-TODO: Document known technical, security, AI, deployment, or usability limitations.
+Instrumentation requires adding @traced to functions; it does not automatically instrument existing agent frameworks; only synchronous function-based tracing appears to be covered by the current implementation; telemetry currently captures function inputs/outputs without configurable redaction; the dashboard's anonymous access model is intentionally simplified for the hackathon; and the insurance agent is a demonstration rather than a production claims system.
 
 ## Future Roadmap
 
-TODO: Describe planned improvements and potential next steps.
+Async-function support, configurable sensitive-data redaction, authentication/access control for dashboards, framework integrations such as LangChain/CrewAI, filtering/searching traces, metrics/aggregation, retention policies, and additional exporters/backends.
 
 ---
 
