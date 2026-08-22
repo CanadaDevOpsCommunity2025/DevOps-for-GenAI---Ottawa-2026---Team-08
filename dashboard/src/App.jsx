@@ -55,8 +55,10 @@ export function App() {
   }
 
   return (
-    <div className="app-shell">
-      <aside className="trace-sidebar" aria-labelledby="recent-traces-title">
+    <>
+      <a className="skip-link" href="#trace-workspace">Skip to trace workspace</a>
+      <div className="app-shell">
+        <aside className="trace-sidebar" aria-labelledby="recent-traces-title">
         <header className="sidebar-header">
           <div className="product-mark" aria-hidden="true">O</div>
           <div>
@@ -76,11 +78,13 @@ export function App() {
             onSelectTrace={selectTrace}
           />
         </nav>
-      </aside>
+        </aside>
 
-      <main
-        className={`trace-workspace ${selection.traceId ? 'trace-workspace-active' : ''}`}
-      >
+        <main
+          id="trace-workspace"
+          className={`trace-workspace ${selection.traceId ? 'trace-workspace-active' : ''}`}
+          tabIndex={-1}
+        >
         {selection.traceId ? (
           <section className="trace-explorer" aria-labelledby="selected-trace-title">
             <header className="trace-explorer-header">
@@ -99,7 +103,11 @@ export function App() {
             </header>
 
             <div className="trace-explorer-body">
-              <section className="trace-tree-panel" aria-labelledby="trace-tree-title">
+              <section
+                className="trace-tree-panel"
+                aria-labelledby="trace-tree-title"
+                aria-busy={isLoading}
+              >
                 <header className="panel-heading">
                   <h2 id="trace-tree-title">Span hierarchy</h2>
                   <p>Operations are ordered by start time.</p>
@@ -132,7 +140,8 @@ export function App() {
             <p>Choose a recent execution to inspect its spans, timing, input, and output.</p>
           </section>
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 // Input/output detail panel for a selected span.
 // Implemented in Task 9 of docs/plans/obeverfy-implementation-plan.md.
 
-import { formatDuration, formatTimestamp } from '../lib/formatters';
+import { formatDuration, formatJson, formatTimestamp } from '../lib/formatters';
 
 const KIND_LABELS = {
   chain: 'Chain',
@@ -23,7 +23,7 @@ function JsonSection({ title, value }) {
         <p className="json-empty">No {title.toLowerCase()} was recorded.</p>
       ) : (
         <pre>
-          <code>{JSON.stringify(value, null, 2)}</code>
+          <code>{formatJson(value)}</code>
         </pre>
       )}
     </section>
@@ -48,7 +48,7 @@ export function SpanDetail({ span }) {
       <header className="span-detail-header">
         <div className="span-detail-badges">
           <span className={`kind-badge kind-${kind}`}>{KIND_LABELS[kind] ?? 'Other'}</span>
-          <span className={`detail-status status-text-${status}`}>
+          <span className={`detail-status status-text-${status}`} aria-live="polite">
             <span className={`status-dot status-${status}`} aria-hidden="true" />
             {STATUS_LABELS[status] ?? 'Unknown'}
           </span>
@@ -57,7 +57,7 @@ export function SpanDetail({ span }) {
       </header>
 
       {span.error ? (
-        <section className="span-error" aria-labelledby="span-error-title">
+        <section className="span-error" aria-labelledby="span-error-title" role="alert">
           <h3 id="span-error-title">Execution error</h3>
           <p>{span.error}</p>
         </section>

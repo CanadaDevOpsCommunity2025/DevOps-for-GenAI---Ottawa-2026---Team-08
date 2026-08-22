@@ -201,7 +201,7 @@ export function TraceList({ selectedTraceId, onSelectTrace }) {
   }
 
   return (
-    <div className="trace-list-container">
+    <div className="trace-list-container" aria-busy={isLoading}>
       <div className="trace-list-connection">
         <RealtimeIndicator status={connectionStatus} />
       </div>

@@ -22,3 +22,11 @@ export function formatTimestamp(value) {
 
   return traceTimestampFormatter.format(date);
 }
+
+export function formatJson(value) {
+  try {
+    return JSON.stringify(value, null, 2) ?? String(value);
+  } catch {
+    return 'This value could not be formatted as JSON.';
+  }
+}

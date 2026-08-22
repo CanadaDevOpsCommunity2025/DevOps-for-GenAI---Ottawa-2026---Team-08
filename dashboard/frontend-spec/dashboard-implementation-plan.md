@@ -15,8 +15,9 @@ without polling.
 - The Vite, React, and Supabase dependencies are installed.
 - `package.json`, `vite.config.js`, `index.html`, `main.jsx`, and
   `supabaseClient.js` are scaffolded.
-- The Phase 1–4 configuration boundary, application shell, recent trace list,
-  trace hierarchy, span inspector, and Realtime reconciliation are implemented.
+- The Phase 1–5 configuration boundary, application shell, recent trace list,
+  trace hierarchy, span inspector, Realtime reconciliation, accessibility, and
+  production-hardening work are implemented.
 - `index.css` contains the dashboard tokens, configuration states, responsive
   shell, trace-list states, trace hierarchy, and inspector layout.
 - `dashboard/package-lock.json` is currently untracked and should be committed
@@ -239,6 +240,8 @@ it requires a running trace producer and a browser WebSocket connection.
 
 ### Phase 5: UI Hardening and Polish
 
+Status: Complete
+
 Files:
 
 - `src/index.css`
@@ -246,18 +249,18 @@ Files:
 
 Tasks:
 
-- [ ] Define reusable tokens for surfaces, text, borders, accent, semantic
+- [x] Define reusable tokens for surfaces, text, borders, accent, semantic
       states, spacing, radii, typography, focus rings, and z-index levels.
-- [ ] Use a restrained product palette: accent for selection and actions,
+- [x] Use a restrained product palette: accent for selection and actions,
       semantic colors for running, success, and error.
-- [ ] Pair colored status indicators with visible text or accessible labels.
-- [ ] Ensure normal text meets a 4.5:1 contrast ratio.
-- [ ] Add visible `:focus-visible` styles to every interactive element.
-- [ ] Keep interaction transitions within approximately 150–250 ms.
-- [ ] Respect `prefers-reduced-motion` for any animated running indicator.
-- [ ] Provide touch-friendly targets on small screens.
-- [ ] Preserve readable JSON and metadata at narrow widths.
-- [ ] Confirm all interactive components cover default, hover, focus, active,
+- [x] Pair colored status indicators with visible text or accessible labels.
+- [x] Ensure normal text meets a 4.5:1 contrast ratio.
+- [x] Add visible `:focus-visible` styles to every interactive element.
+- [x] Keep interaction transitions within approximately 150–250 ms.
+- [x] Respect `prefers-reduced-motion` for any animated running indicator.
+- [x] Provide touch-friendly targets on small screens.
+- [x] Preserve readable JSON and metadata at narrow widths.
+- [x] Confirm all interactive components cover default, hover, focus, active,
       selected, loading, disabled, and error states where applicable.
 
 Acceptance criteria:
@@ -278,10 +281,13 @@ dashboard/src/
 ├── hooks/
 │   └── useTraceSpans.js
 ├── components/
+│   ├── AppErrorBoundary.jsx
+│   ├── RealtimeIndicator.jsx
 │   ├── TraceList.jsx
 │   ├── TraceWaterfall.jsx
 │   └── SpanDetail.jsx
 └── lib/
+    ├── config.js
     ├── spans.js
     └── formatters.js
 ```
@@ -295,14 +301,14 @@ to verify without introducing a state-management library.
 
 ### Local static verification
 
-- [ ] Verify the missing-environment configuration state.
-- [ ] Run `npm run build` from `dashboard/`.
-- [ ] Confirm the production build completes without warnings or errors.
+- [x] Verify the missing-environment configuration state.
+- [x] Run `npm run build` from `dashboard/`.
+- [x] Confirm the production build completes without warnings or errors.
 - [ ] Run the dashboard against an empty `spans` table.
 - [ ] Verify manually inserted or fixture spans while the Python producer is
       unfinished.
 - [ ] Verify successful, running, and failed traces.
-- [ ] Verify orphan spans and out-of-order rows.
+- [x] Verify orphan spans and out-of-order rows.
 - [ ] Verify keyboard navigation through trace and span rows.
 - [ ] Verify representative desktop and mobile viewport widths.
 - [ ] Verify reduced-motion behavior.
@@ -348,18 +354,18 @@ This stage depends on the Python SDK and demo-agent Tasks 2–7.
 
 ## Definition of Done
 
-- [ ] The dashboard builds successfully with `npm run build`.
-- [ ] Browser code uses only the Supabase publishable key.
-- [ ] The newest 20 root traces load directly from Supabase.
+- [x] The dashboard builds successfully with `npm run build`.
+- [x] Browser code uses only the Supabase publishable key.
+- [x] The newest 20 root traces load directly from Supabase.
 - [ ] Trace and span selections are keyboard accessible.
-- [ ] The selected trace renders as an ordered parent/child tree.
-- [ ] The selected span inspector shows current metadata, input, output, and
+- [x] The selected trace renders as an ordered parent/child tree.
+- [x] The selected span inspector shows current metadata, input, output, and
       errors.
 - [ ] Realtime inserts and updates appear without refreshing.
-- [ ] Subscriptions are cleaned up correctly.
-- [ ] Loading, empty, configuration-error, query-error, running, success,
+- [x] Subscriptions are cleaned up correctly.
+- [x] Loading, empty, configuration-error, query-error, running, success,
       error, reconnecting, and offline states have clear presentations.
 - [ ] The layout works on desktop and mobile screens.
-- [ ] Status is not communicated by color alone.
+- [x] Status is not communicated by color alone.
 - [ ] The end-to-end demo passes after the Python implementation is available.
 - [ ] `dashboard/package-lock.json` is committed.
