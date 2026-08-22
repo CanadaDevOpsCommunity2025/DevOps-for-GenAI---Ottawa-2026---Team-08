@@ -76,3 +76,69 @@ def test_find_claim_files_accepts_individual_files(tmp_path):
 def test_find_claim_files_rejects_a_path_that_does_not_exist(tmp_path):
     with pytest.raises(InvalidClaimFileError):
         find_claim_files([str(tmp_path / "nope.json")])
+
+
+# New tests for bug fixes
+
+def test_load_claim_file_rejects_json_array(tmp_path):
+    """Reject claim files with JSON array at top level."""
+    path = tmp_path / "claim.json"
+    path.write_text("[1, 2, 3]")
+
+    with pytest.raises(InvalidClaimFileError, match="must contain a JSON object"):
+        load_claim_file(path)
+
+
+def test_load_claim_file_rejects_json_scalar(tmp_path):
+    """Reject claim files with JSON scalar at top level."""
+    path = tmp_path / "claim.json"
+    path.write_text("42")
+
+    with pytest.raises(InvalidClaimFileError, match="must contain a JSON object"):
+        load_claim_file(path)
+
+
+def test_load_claim_file_rejects_non_numeric_amount(tmp_path):
+    """Reject claim files with string amount."""
+    path = tmp_path / "claim.json"
+    path.write_text(json.dumps({"claim_id": "C-1", "category": "auto", "amount": "a lot"}))
+
+    with pytest.raises(InvalidClaimFileError, match="'amount' must be a number"):
+        load_claim_file(path)
+
+
+def test_load_claim_file_accepts_integer_amount(tmp_path):
+    """Confirm integer amounts are accepted."""
+    path = tmp_path / "claim.json"
+    path.write_text(json.dumps({"claim_id": "C-1", "category": "auto", "amount": 5000}))
+
+    claim = load_claim_file(path)
+
+    assert claim["amount"] == 5000
+
+
+def test_load_claim_file_accepts_float_amount(tmp_path):
+    """Confirm float amounts are accepted."""
+    path = tmp_path / "claim.json"
+    path.write_text(json.dumps({"claim_id": "C-1", "category": "auto", "amount": 5000.50}))
+
+    claim = load_claim_file(path)
+
+    assert claim["amount"] == 5000.50
+
+
+def test_find_claim_files_rejects_non_json_file(tmp_path):
+    """Reject individual non-.json file arguments."""
+    path = tmp_path / "readme.txt"
+    path.write_text("some content")
+
+    with pytest.raises(InvalidClaimFileError, match="not a .json file"):
+        find_claim_files([str(path)])
+
+
+def test_build_message_rejects_non_string_message(tmp_path):
+    """Reject claim files with non-string message."""
+    claim = {"category": "auto", "amount": 5000, "message": 12345}
+
+    with pytest.raises(InvalidClaimFileError, match="'message' must be a string"):
+        build_message(claim)
