@@ -17,6 +17,8 @@ load_dotenv()
 from demo_app.agent import handle_claim  # noqa: E402
 from demo_app.claim_files import build_message, find_claim_files, load_claim_file  # noqa: E402
 from demo_app.db import get_client  # noqa: E402
+from obeverfy.client import SupabaseReporter  # noqa: E402
+from obeverfy.tracing import configure  # noqa: E402
 
 
 def process_claim_file(path: Path) -> dict:
@@ -38,6 +40,8 @@ def process_claim_file(path: Path) -> dict:
 
 
 def main(argv: list[str]) -> None:
+    configure(SupabaseReporter())
+
     if not argv:
         print("Usage: python -m demo_app.scenarios.process_claims <file_or_dir> [...]", file=sys.stderr)
         sys.exit(1)
@@ -48,13 +52,25 @@ def main(argv: list[str]) -> None:
         sys.exit(1)
 
     results = []
+    failed_count = 0
     for path in files:
         print(f"Processing {path} ...")
-        result = process_claim_file(path)
-        results.append(result)
-        print(json.dumps(result, indent=2))
+        try:
+            result = process_claim_file(path)
+            results.append(result)
+            print(json.dumps(result, indent=2))
+        except Exception as e:
+            failed_count += 1
+            print(f"Error processing {path}: {e}", file=sys.stderr)
 
-    print(f"\nProcessed {len(results)} claim(s).")
+    summary = f"\nProcessed {len(results)} claim(s)"
+    if failed_count > 0:
+        summary += f", {failed_count} failed"
+    summary += "."
+    print(summary)
+
+    if failed_count > 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
