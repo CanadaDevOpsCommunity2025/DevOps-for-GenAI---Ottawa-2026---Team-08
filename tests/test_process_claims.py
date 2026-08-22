@@ -56,7 +56,7 @@ def test_main_calls_configure_with_supabase_reporter(
 
 @patch("demo_app.scenarios.process_claims.process_claim_file")
 @patch("demo_app.scenarios.process_claims.find_claim_files")
-def test_main_continues_processing_after_a_file_fails(mock_find_claim_files, mock_process_claim_file, tmp_path):
+def test_main_continues_processing_after_a_file_fails(mock_find_claim_files, mock_process_claim_file, tmp_path, capsys):
     """Test that when one file fails, the batch continues and other files are still processed."""
     # Setup three mock files
     files = [tmp_path / "claim1.json", tmp_path / "claim2.json", tmp_path / "claim3.json"]
@@ -76,6 +76,12 @@ def test_main_continues_processing_after_a_file_fails(mock_find_claim_files, moc
 
     # All three files should have been attempted
     assert mock_process_claim_file.call_count == 3
+
+    # Verify that the successful files' results were actually printed
+    captured = capsys.readouterr()
+    output = captured.out + captured.err
+    assert "C-1" in output, "First successful result (C-1) should be printed"
+    assert "C-3" in output, "Third successful result (C-3) should be printed"
 
 
 @patch("demo_app.scenarios.process_claims.process_claim_file")
@@ -99,7 +105,10 @@ def test_main_reports_failure_count_in_summary(mock_find_claim_files, mock_proce
 
     # Check the printed output
     captured = capsys.readouterr()
-    output = captured.out + captured.err
+    output = captured.out
 
-    # Should mention that 2 succeeded and 1 failed
-    assert "2" in output and "failed" in output.lower()
+    # Assert the exact summary format with correct counts
+    # Should be "Processed 2 claim(s), 1 failed." on a line by itself
+    assert "Processed 2 claim(s), 1 failed." in output, (
+        f"Expected summary 'Processed 2 claim(s), 1 failed.' in output, got: {repr(output)}"
+    )
