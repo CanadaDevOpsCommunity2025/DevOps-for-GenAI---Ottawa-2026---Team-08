@@ -9,11 +9,14 @@ load_dotenv()
 
 from demo_app.agent import handle_claim  # noqa: E402
 from demo_app.db import get_client  # noqa: E402
+from obeverfy.client import SupabaseReporter  # noqa: E402
+from obeverfy.tracing import configure  # noqa: E402
 
 NEW_CLAIM = {"claim_id": "C-2001", "category": "water", "amount": 15000}
 
 
 def main() -> None:
+    configure(SupabaseReporter())
     client = get_client()
     client.table("claims").upsert(
         {
