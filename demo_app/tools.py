@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .db import get_client
-from .tracing_stub import traced
+from obeverfy.tracing import traced
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
     {
