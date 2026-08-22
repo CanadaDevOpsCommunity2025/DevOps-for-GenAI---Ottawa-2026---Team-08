@@ -24,11 +24,27 @@ Developers and Teams building function-based Python AI agents who need visibilit
 
 ### Architecture Diagram
 
-TODO: Add architecture diagram.
+No rendered diagram asset has been created for this submission. As a text overview:
 
-<!-- Example:
-![Architecture Diagram](docs/architecture.png)
--->
+```
+Demo Agent (Python, demo_app/)                     Dashboard (React, dashboard/)
+  handle_claim()
+    |                                                 Trace list -> Waterfall -> Span detail
+    | @traced (obeverfy/tracing.py)                          ^
+    v                                                        | Supabase Realtime
+  classify_claim -> retrieve_policy ->                        | (postgres_changes on `spans`)
+  retrieve_claim_history -> decide -> act                     |
+    |                                                        |
+    | span start/end events                                  |
+    v                                                        |
+  SupabaseReporter (obeverfy/client.py)  ---- insert/upsert --+
+    |
+    v
+  Supabase (Postgres + Realtime)
+  tables: spans, policies, claims
+```
+
+The demo agent and the dashboard never talk to each other directly — Supabase is the only shared state, both for telemetry (`spans`) and the demo's own domain data (`policies`, `claims`).
 
 ### Technology Stack
 
@@ -41,11 +57,12 @@ Observability SDK: custom Obeverfy Python SDK using decorators and contextvars
 
 ### AI Tool Inventory
 
-TODO: List AI models, APIs, coding assistants, agents, or other AI tools used in the project.
+- **OpenAI Responses API** — powers the demo insurance-claims agent's classification and decision-making steps.
+- **Claude Code (Anthropic)** — used as an AI coding assistant during development. See **AI Disclosure** at the end of this README.
 
 ### AI Usage Disclosure
 
-TODO: Describe where and how AI was used during development, including both AI incorporated into the system and AI-assisted development.
+See **AI Disclosure** at the end of this README.
 
 ---
 
@@ -53,35 +70,68 @@ TODO: Describe where and how AI was used during development, including both AI i
 
 ### Working Demo
 
-**Live Demo:** TODO: Add URL if applicable
-
-If no hosted demo is available, follow the setup instructions below to reproduce the project locally.
+**Live Demo:** No hosted demo is available. Follow the setup instructions below to reproduce the project locally.
 
 ### Prerequisites
 
-TODO: List required software, versions, accounts, environment requirements, etc.
+- Python 3.12+
+- Node.js and npm
+- A Supabase project (Postgres + Realtime)
+- An OpenAI API key
 
 ### Setup
 
-TODO: Add installation and configuration steps.
+1. `pip install -r requirements.txt`
+2. Run `supabase/schema.sql` in your Supabase project's SQL Editor (creates the `spans`, `policies`, and `claims` tables, enables RLS, and adds `spans` to the Realtime publication).
+3. `cp .env.example .env` and fill in real values.
+4. `cp dashboard/.env.example dashboard/.env` and fill in real values.
+5. `cd dashboard && npm install`
 
 ### Running Locally
 
-TODO: Add commands and instructions required to start the project.
+```bash
+# Seed demo policies/claims
+python -m demo_app.seed_data
+
+# Run a single demo claim through the agent
+python -m demo_app.scenarios.run_claim
+
+# Batch-process the sample claims
+python -m demo_app.scenarios.process_claims demo_app/sample_claims
+
+# Start the dashboard (separate terminal)
+cd dashboard && npm run dev
+```
 
 ### Configuration and Environment Variables
 
-TODO: Document required environment variables and configuration. Do **not** include real credentials or secrets.
+Root `.env` (server-side, never shared with the browser):
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `OPENAI_API_KEY`
+- `OPENAI_RESPONSES_URL`
+
+`dashboard/.env` (browser-safe):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+No real values are included in this repository; `.env` files are git-ignored.
 
 ---
 
 ## Repository
 
-**GitHub Repository:** https://github.com/CanadaDevOpsCommunity2025/DevOps-for-GenAI---Ottawa-2026---Team-08
+**GitHub Repository:** https://github.com/MLPK-1/DevOps-for-GenAI---Ottawa-2026---Team-08
 
 ### Repository Structure
 
-TODO: Add a brief description of important directories and components if useful.
+- `obeverfy/` — the tracing SDK (`@traced` decorator, `SupabaseReporter`)
+- `demo_app/` — the insurance-claims demo agent (Supabase-backed data, OpenAI calls, tools, the `handle_claim` pipeline, batch/file claim processing)
+- `dashboard/` — the Vite + React live trace viewer
+- `supabase/schema.sql` — the Postgres schema (`spans`, `policies`, `claims`)
+- `tests/` — pytest suite for `obeverfy`/`demo_app`
+- `docs/plans/` — the implementation plans this project was built from
+- `backend/`, `sdk/` — an earlier, superseded design (Express backend, OpenAI stub), left in place rather than removed
 
 ---
 
@@ -89,22 +139,25 @@ TODO: Add a brief description of important directories and components if useful.
 
 ### Threat Model
 
-TODO: Document:
+**Key assets:** the `SUPABASE_SECRET_KEY` and `OPENAI_API_KEY` (full read/write DB access and paid API access respectively); the `spans`/`policies`/`claims` data itself, which may reflect real-looking claim details.
 
-* Key assets that require protection
-* Trust boundaries
-* Potential threat actors
-* Major attack vectors
-* Security controls and mitigations
-* Remaining risks
+**Trust boundaries:** the browser (dashboard) is untrusted and only ever holds the publishable key; the Python agent/SDK runs server-side (a developer's machine, for this hackathon) and is the only thing that holds the secret key.
+
+**Potential threat actors:** anyone who obtains the publishable key (low risk — it's designed to be public and RLS-gated) versus anyone who obtains the secret key (high risk — bypasses RLS entirely).
+
+**Major attack vectors:** accidental commit of `.env`; overly permissive RLS policies; the dashboard's anon/publishable-key access being read-only but unauthenticated (anyone with the URL and key can read all traces and claims).
+
+**Security controls and mitigations:** Row Level Security enabled on all three tables; the publishable key can only `select`, never write; all writes require the secret key, which never leaves the Python side; `.env` and `dashboard/.env` are git-ignored; Supabase's newer `sb_publishable_`/`sb_secret_` key format is used rather than the legacy `anon`/`service_role` JWTs.
+
+**Remaining risks:** the dashboard has no authentication of its own — anyone with the publishable key and project URL can view all traces and claim data; this is an intentional simplification for a hackathon demo, not a production-ready posture. There is no rate limiting, tenant isolation, or PII redaction on captured span input/output.
 
 ### Security and Adversarial Testing
 
-TODO: Add evidence/results from security, abuse-case, prompt-injection, adversarial, or other relevant testing.
+No formal security or adversarial testing (e.g., prompt-injection red-teaming, fuzzing, penetration testing) has been performed for this submission. This is called out explicitly as a known limitation rather than left unaddressed.
 
 ### Secrets and Repository Hygiene
 
-TODO: Document secrets-scanning tools/results and repository hygiene checks.
+No automated secrets-scanning tool was run. Hygiene practices followed manually throughout development: `.env` files are git-ignored and were never committed; the repository's history was checked before pushes; Supabase's newer secret-key format (`sb_secret_...`) is used and confirmed to carry `BYPASSRLS` only server-side; no credentials appear in code, tests, or documentation.
 
 ---
 
@@ -112,15 +165,19 @@ TODO: Document secrets-scanning tools/results and repository hygiene checks.
 
 ### AI System Card
 
-TODO: Document the AI system's:
+**Purpose and intended use:** a demo insurance-claims agent (`demo_app/agent.py`) that classifies a claim, retrieves the applicable coverage policy and claim history, and decides whether to approve or escalate it — built to exercise and demonstrate the Obeverfy tracing SDK, not as a production claims system.
 
-* Purpose and intended use
-* Model(s) or AI services used
-* Inputs and outputs
-* Known risks
-* Safeguards
-* Human oversight
-* Limitations
+**Model(s) or AI services used:** OpenAI's Responses API (model configurable, see `demo_app/llm.py`).
+
+**Inputs and outputs:** input is a free-text claim description plus a category and amount; output is a classification, a tool call (`approve_claim` or `escalate_claim`), or no action if the model doesn't select a tool.
+
+**Known risks:** the model could misclassify a claim category, miscalculate whether a claim exceeds the approval threshold, or select the wrong tool; there is no independent verification of the model's decision before it's executed.
+
+**Safeguards:** the approval threshold (claims over $10,000 require escalation) is encoded as instructions the model must follow, not as code-level enforcement — this is a deliberate demonstration of the exact failure mode Obeverfy's tracing exists to make visible, not a claim that the safeguard is unbypassable.
+
+**Human oversight:** the escalation path (`escalate_claim`) is itself the human-in-the-loop safeguard — high-value claims are intentionally routed to a human adjuster rather than auto-approved.
+
+**Limitations:** no evaluation dataset or accuracy benchmarking has been performed against this agent; it is a demonstration built for one hackathon scenario (insurance claims), not a general-purpose or production system.
 
 ---
 
@@ -128,35 +185,24 @@ TODO: Document the AI system's:
 
 ### CI/CD Pipeline
 
-TODO: Describe the CI/CD workflow and provide evidence of successful pipeline execution.
+No CI/CD pipeline has been configured for this project. Tests are run manually (`pytest` for the Python suite, `npm test` for the dashboard) before merging.
 
 ### Testing
 
-TODO: Describe the project's testing strategy and provide evidence/results.
-
-Examples may include:
-
-* Unit tests
-* Integration tests
-* End-to-end tests
-* Security tests
-* AI/model evaluation tests
+- **Python suite:** 40/40 tests passing (`pytest`), covering the tracing SDK, the demo agent pipeline, claim-file loading/validation, and batch processing. All tests mock the Supabase and OpenAI network boundaries — no live credentials are required to run the suite.
+- **Dashboard suite:** 10/10 tests passing (`npm test`, Node's built-in test runner), covering config validation, formatters, and span/trace reconciliation logic.
+- No end-to-end, security, or AI/model evaluation tests have been written.
 
 ### Observability
 
-TODO: Describe implemented logging, metrics, tracing, alerting, dashboards, or other observability capabilities and provide evidence where appropriate.
+This is the project's core deliverable, not an afterthought:
+- The `@traced` decorator (`obeverfy/tracing.py`) wraps any Python function and automatically nests parent/child spans from the plain call stack via `contextvars` — no manual span-ID wiring.
+- Each span (`start` and `end`) is written to Supabase's `spans` table via `SupabaseReporter` (`obeverfy/client.py`), capturing name, kind, input, output, status, error, and duration.
+- The dashboard subscribes to Supabase Realtime's `postgres_changes` on `spans` and renders a live-updating trace list and waterfall view — spans appear as "running" and fill in as they complete, without polling.
 
 ### SBOM and Dependency Inventory
 
-TODO: Describe how dependencies are tracked and provide an SBOM or dependency inventory where applicable.
-
----
-
-## Demo and Presentation
-
-**Demo Video:** TODO: Add URL
-
-**Live Presentation:** TODO: Add details if applicable
+No automated SBOM tool was used. Dependencies are tracked manually via `requirements.txt` (Python) and `dashboard/package.json`/`package-lock.json` (JavaScript).
 
 ---
 
@@ -186,20 +232,25 @@ Async-function support, configurable sensitive-data redaction, authentication/ac
 * [Y] Project name and selected theme
 * [Y] Elevator pitch
 * [Y] Problem statement and target users
-* [ ] Architecture diagram
-* [ ] Working demo / URL or reproducible run
-* [ ] GitHub repository
-* [ ] Technology and AI-tool inventory
-* [ ] AI usage disclosure
-* [ ] Security threat model
+* [Y] Architecture diagram
+* [Y] Working demo / URL or reproducible run
+* [Y] GitHub repository
+* [Y] Technology and AI-tool inventory
+* [Y] AI usage disclosure
+* [Y] Security threat model
 * [ ] Security/adversarial test evidence
-* [ ] Governance / AI system card
+* [Y] Governance / AI system card
 * [ ] CI/CD pipeline evidence
-* [ ] Testing evidence
-* [ ] Observability evidence
-* [ ] SBOM/dependency inventory where applicable
-* [ ] Secrets scan / repository hygiene evidence
-* [ ] Runbook / setup instructions
-* [ ] Demo video or live presentation
+* [Y] Testing evidence
+* [Y] Observability evidence
+* [Y] SBOM/dependency inventory where applicable
+* [Y] Secrets scan / repository hygiene evidence
+* [Y] Runbook / setup instructions
 * [Y] Known limitations and future roadmap
 * [Y] Team member list
+
+---
+
+## AI Disclosure
+
+Claude Code (Anthropic) was utilized to generate code for this project.
